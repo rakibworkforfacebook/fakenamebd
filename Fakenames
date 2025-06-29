@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Unique Name Generator</title>
+    <style>
+        /* Base styles from your name generator */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column; /* Changed to column to stack elements vertically */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #252839; /* Changed body background to match animation */
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbar if animation causes slight overflow */
+        }
+        .container-wrapper {
+            position: relative;
+            padding: 5px;
+            border-radius: 15px;
+            background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            background-size: 400% 400%;
+            animation: gradientAnimation 10s ease infinite;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            margin-top: 20px; /* Added margin to separate from the animated text */
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        #displayName {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #333;
+            min-height: 1.5em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .buttons button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease, opacity 0.3s ease;
+        }
+        #changeNameBtn {
+            background-color: #007bff;
+            color: white;
+        }
+        #changeNameBtn:hover {
+            background-color: #0056b3;
+        }
+        #copyNameBtn {
+            background-color: #28a745;
+            color: white;
+        }
+        #copyNameBtn:hover:not(:disabled) {
+            background-color: #218838;
+        }
+        #copyNameBtn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        #copyMessage {
+            margin-top: 10px;
+            color: #28a745;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #copiedNameCountDisplay { 
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* Styles for the animated text */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap'); /* Corrected font import */
+        h3.animated-title { /* Added a class to avoid conflicts */
+            position: relative;
+            font-size: 5vw; /* Adjusted for better responsiveness */
+            color: #252839;
+            -webkit-text-stroke: 0.10vw #383d52;
+            text-transform: uppercase;
+            font-family: 'Poppins', sans-serif; /* Applied font */
+            margin-bottom: 20px; /* Space between title and generator */
+            text-align: center;
+            white-space: nowrap; /* Prevents text from wrapping */
+        }
+        h3.animated-title::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            color: #01fe87;
+            -webkit-text-stroke: 0vw #383d52;
+            border-right: 2px solid #01fe87;
+            overflow: hidden;
+            animation: animate 6s linear infinite;
+        }
+        @keyframes animate {
+            0%, 10%, 100% {
+                width: 0;
+            }
+            70%, 90% {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h3 class="animated-title" data-text="CLASHER_BOY_RAKIB">CLASHER_BOY_RAKIB</h3>
+
+    <div class="container-wrapper">
+        <div class="container">
+            <div id="displayName"></div>
+            <div class="buttons">
+                <button id="changeNameBtn">Change Name</button>
+                <button id="copyNameBtn">Copy Name</button>
+            </div>
+            <div id="copiedNameCountDisplay">Generated Unique Names Copied : 0 / 0</div> 
+            <div id="copyMessage">Name copied to clipboard!</div>
+        </div>
+    </div>
+
+    <script>
+        const firstNames = [
+            "maya", "Fatima", "Taniah", "Nazma", "Simran", "Sabrina", "Rifat", "Nisha", "Rupa", "Nila", "Mahira",
+            "Sharmin", "Shanta", "Nusrat", "Sohana", "Zannat", "Samira", "Meher", "Arifa", "Liza", "Tasmin",
+            "Fariha", "Rabia", "Munira", "Khadija", "Shirin", "Afsana", "Jannat", "Rina", "Radhika", "Saira",
+            "Momena", "Roksana", "Tamanna", "Alina", "Anika", "Anjum", "Meem", "Mariam", "Shaila", "Laila",
+            "Noori", "Sumaiya", "Asma", "Amina", "Lamia", "Sumiya", "Isha", "Nilufa", "Mishti", "Siti", "Rumi",
+            "Momo", "Shafina", "Rubina", "Lubna", "Haritha", "Farzana", "Sadaf", "Safiya", "Hena", "Salma",
+            "Rummana", "Rafina", "Tushna", "Sakina", "Sabina", "Nargis", "Sujatha", "Mina", "Nabila", "Anoushka",
+            "Mahin", "Mishka", "Hina", "Kanza", "Sonal", "Afia", "Zoya", "Bushra", "Shuma", "Parveen", "Kiran",
+            "Sharmeen", "Nadia", "Khushbu", "Mira", "Marufa", "Dilruba", "Rashida", "Meherun", "Tuba", "Sumi",
+            "Shamsa", "Afreen", "Shabana", "Shahina", "Tanisha", "Sultana", "Sufia", "Riaz", "Sharifa", "Nilima",
+            "Mehnaz", "Roza", "Suma", "Rakia", "Risha", "Salina", "Nafisa", "Malina", "Ruba", "Mahjabin", "Liyana",
+            "Samia", "Nusi", "sohan", "Sumaya", "Raziya", "Nazrin", "Tania", "Sana", "Shumona", "Tasfia", "Huma",
+            "Morsheda", "Tanvi", "Razia", "Firoza", "Tanima", "Nairah", "Rafiqua", "Shifa", "Iman", "Hira", "Shima",
+            "Purnima", "Naima", "Kaniz", "Anushka", "Sayma", "Farhana", "Rezwana", "Anwar", "Rima", "Ruhi", "Sabera",
+            "Nadiya", "Sabila", "Hannan", "Shireen", "Nurjahan", "Sonia", "Nahid", "Usha", "Tanjina", "Sahar",
+            "Mizan", "Shamima", "Asiya", "Maisha", "Nilufer", "Tazeen", "Tanjila", "Zeenat", "Riana", "Dilara",
+            "Zara", "Rabeya", "mona", "Noor", "Shama", "Niharika", "Nayema", "Akila", "Mahi", "Shafia", "Amira",
+            "Nimra", "Ruma", "Prity", "Sania", "Zakia", "Alia", "Bibi", "Tashfia", "Samina", "Erina", "Ascha",
+            "Rishika", "Tanika", "Sharmila", "Khalida", "Suman", "mim", "Ahsina", "Shabnam", "Raima", "Anousha",
+            "Rakhi", "Kashifa", "Maimuna", "Marzia", "Rahima", "Sadiya", "Yasmin", "Sita", "Rajia", "Afifa",
+            "Sumona", "Misbah", "Shahana", "Sanam", "Kaderia", "Zahira", "Aisha", "Aleya", "Amena", "Anjuman",
+            "Anwara", "Asmani", "Atia", "Aysha", "Barsha", "Bilkis", "Bonna", "Chhaya", "Dalia", "Eliya", "Elma",
+            "Fahmida", "Faria", "Fatema", "Fiza", "Fuli", "Giti", "Gulshan", "Habiba", "Hana", "Hasna", "Heena",
+            "Humaira", "Ishrat", "Jasmin", "Joba", "Kajol", "Karishma", "Kashfia", "Khaleda", "Laboni", "Latifa",
+            "Lima", "Mahbuba", "Maleka", "Marjan", "Mili", "Minara", "Monira", "Moushumi", "Munia", "Najma",
+            "Nasima", "Nazia", "Nazmun", "Neela", "Nigar", "Nowshin", "Poppy", "Priyanka", "Raisa", "Rokeya",
+            "Rozina", "Rumana", "Sadia", "Kabita", "Kabila", "Kadija", "Kafia", "Kajal", "Kalpana", "Kamala",
+            "Kanta", "Kanika", "Karima", "Kawsar", "Kaziya", "Keisha", "Keya", "Khatija", "Kheya", "Khushboo",
+            "Kirti", "Komal", "Koushani", "Kripa", "Kriti", "Kusum", "Kusuma", "Kuhu", "Kunti", "Kusumita",
+            "Kholida", "Kismat", "Kisha", "Kishori", "Krishika", "Kendra", "Kajori", "Kanini", "Kalyani", "Kirtana",
+            "Kinkini", "Kamini", "Kanti", "Kaviya", "Kareemah", "Khushali", "Komola", "Krishani", "Krithika",
+            "Kadambini", "Kamrunnahar", "Kavita", "Kantha", "Kalika", "Kandra", "Koyel", "Kiranmayee", "Kushi",
+            "Kiranpreet", "Kalpita", "Kausar", "Kareena", "Kanchan", "Kasma", "Kirana", "Kanchana", "Kesia",
+            "Kinza", "Kashaf", "Khatun", "Kanchani", "Kani", "Kamrun", "Kamrul", "Kulsuma", "Krina", "Kanjana",
+            "Khadeeja", "Kunya", "Krupa", "Kanji", "Kamar", "Kishmita", "Kanara", "Kumudini", "Krisha", "Kalpitha",
+            "Kitiya", "Krishan", "Kamari", "Rafia", "Raihana", "Ranya", "Rasha", "Rasika", "Rasmira", "Raza",
+            "Rifa", "Rimsha", "Rini", "Rista", "Rithika", "Rukhsana", "Rubaba", "Rumiya", "Rumina", "Rubel",
+            "Ridhi", "Reema", "Ranjana", "Rekha", "Roshni", "Rajika", "Reshma", "Rakiba", "Raina", "Reena",
+            "Rufaida", "Rasiya", "Razina", "Rukia", "Rajnish", "Ralina", "Riya", "Rithu", "Rasna", "Ritu",
+            "Rajisha", "Rupi", "Rasin", "Rosina", "Rookshana", "Raheel", "Roshan", "Raheela", "Romi", "Rafiya",
+            "Ranu", "Rihana", "Rinal", "Rasheeda", "Rabi", "Roshika", "Rehnuma", "Rafika", "Rumel", "Rishma",
+            "Rehena", "Rasima", "Ramisha", "Rehana", "Ayesha", "Maliya", "Malika", "Manara", "Maneha", "Manisha",
+            "Mariah", "Marjana", "Mehzabin", "Mehtab", "Melina", "Miftah", "Mila", "Mita", "Mobina", "Monisha",
+            "Mounira", "Muntaha", "Mursalina", "Muskaan", "Najia", "Naila", "Nasrin", "Nayera", "Neha", "Nilofer",
+            "Noreen", "Nushrat", "Nuzhat", "Rabiya", "Rafiqa", "Reem", "Refeya", "Shashi", "Sheela", "Sifat",
+            "Somia", "Nahida", "Saleha", "Sahida", "Nuru", "Jonaki", "Moina", "Piya", "Pakhi", "Akhi", "Hasi",
+            "Khushi", "Muskan", "Masum", "Sayeda", "Setu", "Mitu", "Susmita", "Choiti", "Anuska", "Popi", "Sathi",
+            "Nondini", "Sorna", "Tuktuki", "Ayat", "Eba", "Noina", "Siuli", "Bulbuli", "Rupti", "Shova", "Joya",
+            "Sammi", "Jahan", "Israt", "Toya", "Jannobi", "Janu", "Nodi", "Oli", "Soneya", "Samiya", "Raniya",
+            "Nilu", "Putul", "Nuri", "Taiba", "Tusti", "Saniya", "Nourin", "kaya", "Aditi", "Amrita", "Anjali",
+            "Arpita", "Bina", "Bipasha", "Chaitali", "Charulata", "Damini", "Deepa", "Devika", "Dipti", "Durga",
+            "Elina", "Gita", "Gungun", "Hema", "Ipsita", "Jaya", "Jyoti", "Karuna", "Lata", "Manju", "Meera",
+            "Monika", "Moumita", "Neelam", "Nidhi", "Pallavi", "Pooja", "Priya", "Sadhna", "Sangeeta", "Sandhya",
+            "Sarita", "Seema", "Shanti", "Shobha", "Smita", "Sneha", "Soni", "Sonali", "Sreeja", "Sumita", "Sunita",
+            "Swapna", "Tarini", "Trisha", "Urmila", "Uttara", "Vibha", "Vidya", "Asha", "Ananya", "Aruna", "Bahar",
+            "Basanti", "Bhavana", "Chandra", "Chandana", "Dipa", "Gargee", "Nirupa", "Pratima", "Rani", "Sarojini",
+            "Shalini", "Shweta", "Snehalata", "Sonika", "Suchita", "Subha", "Sukanya", "Sweta", "Urvashi", "Joiti",
+            "Papiya", "Piyonti", "Preyosi", "Pori", "Mantasa", "Nijhum", "Golapi", "Prety", "Sompa", "Srety",
+            "Suppiya", "Konika", "Polok"
+        ];
+
+        const lastNames = [
+            "mim", "islam", "khatun", "hossain", "Simran", "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin",
+            "rahman", "khan", "akther", "chowdhary", "akther", "islam", "khatun", "hossain", "chowdhary", "mia",
+            "mahmud", "sikdar", "talukdar", "ahmed", "uddin", "rahman", "khan", "akther", "islam", "khatun",
+            "hossain", "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin", "rahman", "khan",
+            "akther", "islam", "khatun", "hossain", "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "ahmed",
+            "uddin", "rahman", "khan", "akther", "islam", "khatun", "hossain", "chowdhary", "mia", "mahmud",
+            "sikdar", "talukdar", "ahmed", "uddin", "rahman", "khan", "akther", "islam", "khatun", "hossain",
+            "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin", "rahman", "khan", "islam",
+            "hossain", "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin", "rahman", "khan",
+            "akther", "islam", "khatun", "hossain", "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "ahmed",
+            "uddin", "rahman", "khan", "akther", "islam", "khatun", "hossain", "chowdhary", "mia", "mahmud",
+            "sikdar", "talukdar", "ahmed", "uddin", "rahman", "khan", "akther", "islam", "khatun", "hossain",
+            "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin", "rahman", "khan", "islam",
+            "khatun", "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin", "rahman", "khan",
+            "akther", "islam", "khatun", "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin", "khan",
+            "akther", "islam", "khatun", "hossain", "chowdhary", "mia", "sikdar", "talukdar", "ahmed", "uddin",
+            "rahman", "khan", "akther", "islam", "khatun", "hossain", "chowdhary", "mia", "mahmud", "sikdar",
+            "talukdar", "ahmed", "uddin", "rahman", "khan", "akther", "islam", "khatun", "hossain", "chowdhary",
+            "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin", "rahman", "khan", "akther", "islam",
+            "khatun", "hossain", "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin", "rahman",
+            "khan", "islam", "hossain", "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin",
+            "rahman", "khan", "akther", "islam", "khatun", "hossain", "chowdhary", "mia", "mahmud", "sikdar",
+            "talukdar", "ahmed", "uddin", "rahman", "khan", "akther", "islam", "khatun", "hossain", "chowdhary",
+            "mia", "mahmud", "sikdar", "talukdar", "uddin", "rahman", "khan", "akther", "islam", "khatun",
+            "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin", "rahman", "khan", "akther",
+            "islam", "khatun", "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "uddin", "rahman", "khan",
+            "islam", "khatun", "hossain", "chowdhary", "mia", "mahmud", "sikdar", "talukdar", "ahmed", "uddin",
+            "rahman", "khan", "akther", "islam", "khatun", "hossain", "chowdhary", "mia", "mahmud", "sikdar",
+            "talukdar", "ahmed", "uddin", "rahman", "akther", "islam", "khatun", "hossain", "chowdhary", "mia",
+            "mahmud", "sikdar", "talukdar", "ahmed", "uddin", "rahman", "khan", "akther"
+        ];
+
+        const displayName = document.getElementById('displayName');
+        const changeNameBtn = document.getElementById('changeNameBtn');
+        const copyNameBtn = document.getElementById('copyNameBtn');
+        const copyMessage = document.getElementById('copyMessage');
+        const copiedNameCountDisplay = document.getElementById('copiedNameCountDisplay'); 
+
+        // This Set stores all unique names copied today (resets daily)
+        const generatedAndCopiedNamesToday = new Set(); 
+        const maxPossibleNames = firstNames.length * lastNames.length;
+
+        // No need for currentDisplayedName, as `displayName.textContent` directly gives it.
+
+        function getTodayDateString() {
+            const today = new Date();
+            return today.toISOString().split('T')[0]; // YYYY-MM-DD format
+        }
+
+        function loadCountersAndNames() {
+            const savedCopiedNames = localStorage.getItem('generatedAndCopiedNamesToday');
+            const savedResetDate = localStorage.getItem('lastResetDate');
+
+            const todayDate = getTodayDateString();
+
+            if (savedResetDate !== todayDate) {
+                // It's a new day, reset the counter and the set of copied names
+                generatedAndCopiedNamesToday.clear(); // Clear the Set
+                localStorage.setItem('lastResetDate', todayDate);
+                localStorage.setItem('generatedAndCopiedNamesToday', JSON.stringify([])); // Store an empty array
+                console.log("Daily reset performed.");
+            } else if (savedCopiedNames) {
+                // Load previously copied names into the Set
+                const namesArray = JSON.parse(savedCopiedNames);
+                namesArray.forEach(name => generatedAndCopiedNamesToday.add(name));
+            }
+            updateDisplayCounts();
+        }
+
+        function updateDisplayCounts() {
+            copiedNameCountDisplay.textContent = `Generated Unique Names Copied : ${generatedAndCopiedNamesToday.size} / ${maxPossibleNames}`;
+            if (generatedAndCopiedNamesToday.size === maxPossibleNames) {
+                changeNameBtn.disabled = true; // No more unique names to generate
+                displayName.textContent = "All unique names generated and copied for today!";
+                copyNameBtn.disabled = true; // Disable copy button as nothing new can be copied
+                copyNameBtn.textContent = "All Copied!"; // Indicate no more names to copy
+            } else {
+                changeNameBtn.disabled = false; // Enable change name button
+            }
+        }
+
+        function generateNewUniqueNameForDisplay() {
+            if (generatedAndCopiedNamesToday.size === maxPossibleNames) {
+                displayName.textContent = "All unique names generated and copied for today!";
+                changeNameBtn.disabled = true;
+                copyNameBtn.disabled = true;
+                copyNameBtn.textContent = "All Copied!";
+                return;
+            }
+
+            let newName;
+            let attempts = 0;
+            const maxAttempts = 5000; // Increased attempts to better ensure finding a unique name
+
+            // Find a unique name that hasn't been copied today
+            do {
+                const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+                const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                newName = `${randomFirstName} ${randomLastName}`;
+                attempts++;
+                if (attempts > maxAttempts) {
+                    // Fallback if it's extremely hard to find a unique name.
+                    // This might occur if almost all names are copied and random picking is inefficient.
+                    // A more robust solution for very large sets would be to pre-generate and shuffle
+                    // the *remaining* names. For this scale, increased attempts should be fine.
+                    console.warn("Max attempts reached. Could not find a completely new unique name quickly. It might display a previously copied name or struggle to find new ones.");
+                    break; 
+                }
+            } while (generatedAndCopiedNamesToday.has(newName));
+            
+            displayName.textContent = newName;
+            
+            // Re-enable copy button for the new name
+            // Check if the newly generated name has already been copied today
+            if (generatedAndCopiedNamesToday.has(newName)) {
+                copyNameBtn.disabled = true;
+                copyNameBtn.textContent = "Already Copied!";
+            } else {
+                copyNameBtn.disabled = false; 
+                copyNameBtn.textContent = "Copy Name"; // Reset text
+            }
+        }
+
+        // Event listeners
+        changeNameBtn.addEventListener('click', () => {
+            generateNewUniqueNameForDisplay();
+            copyMessage.style.opacity = 0;
+        });
+
+        copyNameBtn.addEventListener('click', () => {
+            const nameToCopy = displayName.textContent;
+            
+            // Ensure a name is displayed and it's not a status message
+            if (nameToCopy && !copyNameBtn.disabled && nameToCopy !== "All unique names generated and copied for today!") {
+                // Check if this specific name has already been copied today within the current session
+                if (!generatedAndCopiedNamesToday.has(nameToCopy)) {
+                    navigator.clipboard.writeText(nameToCopy).then(() => {
+                        copyMessage.style.opacity = 1;
+                        setTimeout(() => {
+                            copyMessage.style.opacity = 0;
+                        }, 2000);
+
+                        // Add the copied name to our set
+                        generatedAndCopiedNamesToday.add(nameToCopy);
+                        // Save the updated set to localStorage
+                        localStorage.setItem('generatedAndCopiedNamesToday', JSON.stringify(Array.from(generatedAndCopiedNamesToday)));
+                        updateDisplayCounts(); // Update the displayed count
+
+                        // Disable the copy button after copying this specific name
+                        copyNameBtn.disabled = true;
+                        copyNameBtn.textContent = "Copied!"; // Show "Copied!" text
+                    }).catch(err => {
+                        console.error('Failed to copy text: ', err);
+                        alert('Failed to copy name. Please try again.');
+                    });
+                } else {
+                    // This name was somehow already in the set but button was enabled.
+                    // This should ideally not happen if generateNewUniqueNameForDisplay works correctly.
+                    console.log("Error: This name was already in the copied set when copy was attempted.");
+                    copyNameBtn.disabled = true;
+                    copyNameBtn.textContent = "Already Copied!";
+                }
+            } else {
+                // If button is already disabled or no valid name to copy
+                alert('This name has already been copied or there is no new name to copy!');
+            }
+        });
+
+        // Initialize on page load
+        loadCountersAndNames(); // Load saved counts and check for daily reset
+        generateNewUniqueNameForDisplay(); // Generate initial name for display and set copy button state
+    </script>
+</body>
+</html>
